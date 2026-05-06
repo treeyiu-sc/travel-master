@@ -47,11 +47,11 @@ export default function TripDetail() {
     );
   }
 
-  const totalDays = trip.itinerary.length;
-  const totalAttractions = trip.itinerary.reduce(
-    (sum, day) => sum + day.attractions.length,
-    0,
-  );
+  // const totalDays = trip.itinerary.length;
+  // const totalAttractions = trip.itinerary.reduce(
+  //   (sum, day) => sum + day.attractions.length,
+  //   0,
+  // );
 
   return (
     <PageContainer>
