@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { Flight, TripDay, Trip, Attraction } from '../types';
+import { useState, useEffect } from 'react';
+import { Flight, TripDay, Trip, Attraction, ShoppingItem } from '../types';
 import { Plus, X, Upload } from 'lucide-react';
 import FlightForm from './FlightForm';
 import TripDayForm from './TripDayForm';
+import ShoppingItemForm from './ShoppingItemForm';
 import Button from './Button';
 
 const emptyFlight: Flight = {
@@ -30,20 +31,51 @@ export default function TripForm({ trip, onSubmit, onCancel }: TripFormProps) {
     remarks: trip?.remarks || '',
   });
 
-  const [flights, setFlights] = useState<Flight[]>(
-    trip?.flights.length ? trip.flights : [emptyFlight]
-  );
+  const [flights, setFlights] = useState<Flight[]>([]);
 
-  const [itinerary, setItinerary] = useState<TripDay[]>(
-    trip?.itinerary.map((day) => ({
-      ...day,
-      date: day.date.split('T')[0],
-      attractions: day.attractions.length ? day.attractions : [{ startTime: '', endTime: '', title: '', description: '', transport: '', highlights: '', mustEat: '', mustBuy: '', mapLocation: '', tips: '' }],
-    })) || []
-  );
+  useEffect(() => {
+    if (trip?.flights?.length) {
+      setFlights(
+        trip.flights.map(flight => ({
+          ...flight,
+          departureTime: flight.departureTime ? new Date(flight.departureTime).toISOString().slice(0, 16) : '',
+          arrivalTime: flight.arrivalTime ? new Date(flight.arrivalTime).toISOString().slice(0, 16) : '',
+        }))
+      );
+    } else {
+      setFlights([emptyFlight]);
+    }
+  }, [trip]);
+
+  const [itinerary, setItinerary] = useState<TripDay[]>([]);
+
+  useEffect(() => {
+    if (trip?.itinerary) {
+      setItinerary(
+        trip.itinerary.map((day) => ({
+          ...day,
+          title: day.title || '',
+          date: day.date.split('T')[0],
+          attractions: day.attractions.length ? day.attractions : [{ startTime: '', endTime: '', title: '', description: '', transport: '', highlights: '', mustEat: '', mustBuy: '', mapLocation: '', tips: '' }],
+        }))
+      );
+    } else {
+      setItinerary([]);
+    }
+  }, [trip]);
 
   const [imageUrls, setImageUrls] = useState<string[]>(trip?.images || []);
   const [newImageUrl, setNewImageUrl] = useState('');
+
+  const [shoppingList, setShoppingList] = useState<ShoppingItem[]>([]);
+
+  useEffect(() => {
+    if (trip?.shoppingList) {
+      setShoppingList(trip.shoppingList);
+    } else {
+      setShoppingList([]);
+    }
+  }, [trip]);
 
   const addFlight = () => setFlights([...flights, emptyFlight]);
 
@@ -97,11 +129,21 @@ export default function TripForm({ trip, onSubmit, onCancel }: TripFormProps) {
 
   const updateAttraction = (dayIndex: number, attrIndex: number, field: keyof Attraction, value: string) => {
     const updated = [...itinerary];
+    const numFields = ['transportationCost', 'attractionCost'];
+    const processedValue = numFields.includes(field) ? (value === '' ? undefined : Number(value)) : value;
     updated[dayIndex].attractions[attrIndex] = {
       ...updated[dayIndex].attractions[attrIndex],
-      [field]: value,
+      [field]: processedValue,
     };
     setItinerary(updated);
+  };
+
+  const updateDay = (dayIndex: number, field: string, value: string) => {
+    setItinerary(prev => {
+      const updated = [...prev];
+      updated[dayIndex] = { ...updated[dayIndex], [field]: value };
+      return updated;
+    });
   };
 
   const addImageUrl = () => {
@@ -113,6 +155,27 @@ export default function TripForm({ trip, onSubmit, onCancel }: TripFormProps) {
 
   const removeImage = (index: number) => {
     setImageUrls(imageUrls.filter((_, i) => i !== index));
+  };
+
+  const addShoppingItem = () => {
+    setShoppingList([...shoppingList, { productName: '', description: '', price: undefined, image: '' }]);
+  };
+
+  const removeShoppingItem = (index: number) => {
+    if (shoppingList.length > 1) {
+      setShoppingList(shoppingList.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateShoppingItem = (index: number, field: keyof ShoppingItem, value: string) => {
+    const updated = [...shoppingList];
+    const numFields = ['price'];
+    const processedValue = numFields.includes(field) ? (value === '' ? undefined : Number(value)) : value;
+    updated[index] = {
+      ...updated[index],
+      [field]: processedValue,
+    };
+    setShoppingList(updated);
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -134,11 +197,16 @@ export default function TripForm({ trip, onSubmit, onCancel }: TripFormProps) {
     e.preventDefault();
     onSubmit({
       ...formData,
-      flights: flights.filter((f) => f.airline || f.flightNumber),
+      flights: flights.filter((f) => f.airline || f.flightNumber).map(flight => ({
+        ...flight,
+        departureTime: flight.departureTime ? new Date(flight.departureTime).toISOString() : '',
+        arrivalTime: flight.arrivalTime ? new Date(flight.arrivalTime).toISOString() : '',
+      })),
       itinerary: itinerary.map((day) => ({
         ...day,
         attractions: day.attractions.filter((a) => a.title),
       })),
+      shoppingList: shoppingList.filter((item) => item.productName),
       images: imageUrls,
     });
   };
@@ -257,8 +325,31 @@ export default function TripForm({ trip, onSubmit, onCancel }: TripFormProps) {
               onRemoveDay={removeDay}
               onRemoveAttraction={removeAttraction}
               onUpdateAttraction={updateAttraction}
+              onUpdateDay={updateDay}
             />
           ))}
+        </div>
+
+        <div className="mb-4">
+          <div className="flex justify-between items-center mb-2">
+            <h3 className="font-semibold">購物清單</h3>
+            <Button variant="secondary" size="sm" icon={Plus} outline onClick={addShoppingItem}>
+              添加物品
+            </Button>
+          </div>
+          {shoppingList.map((item, index) => (
+            <ShoppingItemForm
+              key={index}
+              item={item}
+              index={index}
+              totalItems={shoppingList.length}
+              onUpdate={updateShoppingItem}
+              onRemove={removeShoppingItem}
+            />
+          ))}
+          {shoppingList.length === 0 && (
+            <p className="text-gray-500 text-sm">尚未添加購物物品</p>
+          )}
         </div>
 
         <textarea

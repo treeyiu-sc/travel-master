@@ -1,9 +1,11 @@
 import {
   ArrowLeft,
   CalendarDays,
+  Check,
   MapPin,
   MessageSquare,
   Plane,
+  ShoppingBag,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -12,7 +14,7 @@ import FlightCard from "../components/FlightCard";
 import PageContainer from "../components/PageContainer";
 import TripDayCard from "../components/TripDayCard";
 import { tripApi } from "../services/api";
-import { Trip } from "../types";
+import { Trip, ShoppingItem } from "../types";
 
 export default function TripDetail() {
   const { id } = useParams<{ id: string }>();
@@ -111,7 +113,7 @@ export default function TripDetail() {
       {trip.flights.length > 0 && (
         <div className="bg-white/80 backdrop-blur-sm p-8 rounded-[3rem] shadow-xl border-4 border-white inline-block w-full mb-6">
           <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <Plane size={18} /> Flights
+            <Plane size={18} /> 航班資訊
           </h2>
           {trip.flights.map((flight, i) => (
             <FlightCard key={i} flight={flight} />
@@ -122,11 +124,62 @@ export default function TripDetail() {
       {trip.itinerary.length > 0 && (
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <CalendarDays size={18} /> Itinerary
+            <CalendarDays size={18} /> 行程
           </h2>
           {trip.itinerary.map((day) => (
             <TripDayCard key={day._id || day.dayNumber} day={day} />
           ))}
+        </div>
+      )}
+
+      {trip.shoppingList && trip.shoppingList.length > 0 && (
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <ShoppingBag size={18} /> 購物清單
+          </h2>
+          <div className="space-y-3">
+            {trip.shoppingList.map((item, index) => (
+              <div key={item._id || index} className={`flex items-center gap-3 p-3 border rounded-lg ${item.completed ? 'bg-gray-50 opacity-75' : 'bg-white'}`}>
+                <button
+                  onClick={async () => {
+                    const updatedList = [...trip.shoppingList];
+                    updatedList[index] = { ...updatedList[index], completed: !updatedList[index].completed };
+                    try {
+                      await tripApi.update(trip._id, { shoppingList: updatedList });
+                      setTrip({ ...trip, shoppingList: updatedList });
+                    } catch (error) {
+                      console.error('Failed to update shopping item:', error);
+                    }
+                  }}
+                  className={`w-6 h-6 rounded border-2 flex items-center justify-center shrink-0 transition ${
+                    item.completed
+                      ? 'bg-green-500 border-green-500 text-white'
+                      : 'border-gray-300 hover:border-green-400'
+                  }`}
+                >
+                  {item.completed && <Check size={14} />}
+                </button>
+                {item.image && (
+                  <img src={item.image} alt={item.productName} className="w-12 h-12 object-cover rounded" />
+                )}
+                <div className="flex-1">
+                  <h3 className={`font-semibold ${item.completed ? 'line-through text-gray-500' : ''}`}>
+                    {item.productName}
+                  </h3>
+                  {item.description && (
+                    <p className={`text-gray-600 text-sm ${item.completed ? 'line-through text-gray-400' : ''}`}>
+                      {item.description}
+                    </p>
+                  )}
+                </div>
+                {item.price !== undefined && (
+                  <p className={`font-medium shrink-0 ${item.completed ? 'line-through text-gray-400' : 'text-green-600'}`}>
+                    ${item.price}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

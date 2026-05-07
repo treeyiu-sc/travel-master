@@ -19,13 +19,16 @@ export default function TripCard({ trip, onEdit, onDelete }: TripCardProps) {
   const thumbnail = trip.images.length > 0 ? trip.images[0] : null;
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+    <div className="bg-white rounded-lg shadow-md overflow-hidden">
       {thumbnail && (
-        <div className="w-full" onClick={() => navigate(`/trips/${trip._id}`)}>
+        <div
+          className="w-full overflow-hidden"
+          onClick={() => navigate(`/trips/${trip._id}`)}
+        >
           <img
             src={thumbnail}
             alt={trip.title}
-            className="w-full object-cover cursor-pointer"
+            className="w-full object-cover cursor-pointer hover:scale-110 transition"
           />
         </div>
       )}

@@ -10,9 +10,10 @@ interface TripDayFormProps {
   onRemoveDay: (index: number) => void;
   onRemoveAttraction: (dayIndex: number, attrIndex: number) => void;
   onUpdateAttraction: (dayIndex: number, attrIndex: number, field: keyof Attraction, value: string) => void;
+  onUpdateDay: (dayIndex: number, field: string, value: string) => void;
 }
 
-export default function TripDayForm({ day, index, onAddAttraction, onRemoveDay, onRemoveAttraction, onUpdateAttraction }: TripDayFormProps) {
+export default function TripDayForm({ day, index, onAddAttraction, onRemoveDay, onRemoveAttraction, onUpdateAttraction, onUpdateDay }: TripDayFormProps) {
   return (
     <div className="border rounded-lg p-3 mb-3 bg-gray-50">
       <div className="flex justify-between items-center mb-2">
@@ -21,6 +22,13 @@ export default function TripDayForm({ day, index, onAddAttraction, onRemoveDay, 
           Remove Day
         </Button>
       </div>
+      <input
+        type="text"
+        placeholder="Day Title (optional)"
+        value={day.title || ''}
+        onChange={(e) => onUpdateDay(index, 'title', e.target.value)}
+        className="w-full px-3 py-1 mb-2 border rounded-lg text-sm"
+      />
       {day.attractions.map((attr, attrIndex) => (
         <AttractionForm
           key={attrIndex}

@@ -18,13 +18,25 @@ export interface Attraction {
   mustBuy: string;
   mapLocation: string;
   tips: string;
+  transportationCost?: number;
+  attractionCost?: number;
 }
 
 export interface TripDay {
   _id?: string;
   dayNumber: number;
   date: string;
+  title?: string;
   attractions: Attraction[];
+}
+
+export interface ShoppingItem {
+  _id?: string;
+  image?: string;
+  productName: string;
+  description?: string;
+  price?: number;
+  completed?: boolean;
 }
 
 export interface Trip {
@@ -35,6 +47,7 @@ export interface Trip {
   endDate: string;
   flights: Flight[];
   itinerary: TripDay[];
+  shoppingList: ShoppingItem[];
   budget: number;
   remarks: string;
   images: string[];

@@ -1,5 +1,5 @@
 import { TripDay } from '../types';
-import { Clock, MapPin, UtensilsCrossed, ShoppingBag, Train, Star, MessageSquare, ExternalLink } from 'lucide-react';
+import { Clock, MapPin, UtensilsCrossed, ShoppingBag, Train, Star, MessageSquare, ExternalLink, DollarSign } from 'lucide-react';
 
 interface TripDayCardProps {
   day: TripDay;
@@ -8,7 +8,10 @@ interface TripDayCardProps {
 export default function TripDayCard({ day }: TripDayCardProps) {
   return (
     <div className="bg-white p-3 rounded border mb-2">
-      <h5 className="font-medium mb-2">Day {day.dayNumber} - {day.date.split('T')[0]}</h5>
+      <h5 className="font-medium mb-2">
+        Day {day.dayNumber} - {day.date.split('T')[0]}
+        {day.title && <span className="ml-2 text-gray-600">- {day.title}</span>}
+      </h5>
       {day.attractions.map((attr, ai) => (
         <div key={ai} className="ml-4 mb-3 border-l-2 border-blue-300 pl-3">
           <div className="flex items-center gap-2 mb-1">
@@ -36,6 +39,16 @@ export default function TripDayCard({ day }: TripDayCardProps) {
             )}
             {attr.tips && <span className="flex items-center gap-1 text-sm text-gray-500 italic"><MessageSquare size={12} /> 貼士: {attr.tips}</span>}
           </div>
+          {(attr.transportationCost !== undefined || attr.attractionCost !== undefined) && (
+            <div className="flex gap-4 text-sm text-gray-600 mt-1">
+              {attr.transportationCost !== undefined && (
+                <span className="flex items-center gap-1"><DollarSign size={12} /> 交通費用: ${attr.transportationCost}</span>
+              )}
+              {attr.attractionCost !== undefined && (
+                <span className="flex items-center gap-1"><DollarSign size={12} /> 景點費用: ${attr.attractionCost}</span>
+              )}
+            </div>
+          )}
         </div>
       ))}
     </div>

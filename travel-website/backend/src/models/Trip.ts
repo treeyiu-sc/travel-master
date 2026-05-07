@@ -12,11 +12,14 @@ const attractionSchema: Schema = new Schema({
   mustBuy: { type: String, default: '' },
   mapLocation: { type: String, default: '' },
   tips: { type: String, default: '' },
+  transportationCost: { type: Number },
+  attractionCost: { type: Number },
 }, { _id: true });
 
 const tripDaySchema: Schema<ITripDay> = new Schema({
   dayNumber: { type: Number, required: true },
   date: { type: Date, required: true },
+  title: { type: String, default: '' },
   attractions: { type: [attractionSchema], default: [] },
 }, { _id: true });
 
@@ -29,6 +32,14 @@ const flightSchema: Schema<IFlight> = new Schema({
   arrivalTime: { type: Date, required: true },
 }, { _id: true });
 
+const shoppingItemSchema: Schema = new Schema({
+  image: { type: String, default: '' },
+  productName: { type: String, required: true },
+  description: { type: String, default: '' },
+  price: { type: Number },
+  completed: { type: Boolean, default: false },
+}, { _id: true });
+
 const tripSchema: Schema<ITrip> = new Schema(
   {
     title: { type: String, required: true },
@@ -37,6 +48,7 @@ const tripSchema: Schema<ITrip> = new Schema(
     endDate: { type: Date, required: true },
     flights: { type: [flightSchema], default: [] },
     itinerary: { type: [tripDaySchema], default: [] },
+    shoppingList: { type: [shoppingItemSchema], default: [] },
     budget: { type: Number, default: 0 },
     remarks: { type: String, default: '' },
     images: { type: [String], default: [] },
